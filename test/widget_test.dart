@@ -1,30 +1,41 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:sewa_rent/main.dart';
+import 'package:sewa_rent/app/app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('app shows the home screen with bottom navigation', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const SewaRentApp());
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Find your next home'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Favourites'), findsOneWidget);
+    expect(find.text('Requests'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('property card opens the property details screen', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const SewaRentApp());
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('Recommended for you'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Modern 2-Bedroom Apartment in Mont Kiara'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Modern 2-Bedroom Apartment in Mont Kiara'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Property Details'), findsOneWidget);
+    expect(find.text('Request to Rent'), findsOneWidget);
   });
 }
