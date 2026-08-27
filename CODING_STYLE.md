@@ -5,6 +5,8 @@
 > The goal is to keep the Flutter/Dart code consistent, readable, maintainable, and easy for both developers and AI coding agents to understand.
 >
 > This document is inspired by the project's existing .NET coding conventions: feature-oriented organization, thin entry points, clear responsibilities, minimal comments, explicit validation, and avoiding unnecessary abstraction.
+>
+> Feature folders in this document (`auth`, `property`, `favourite`, `rental_request`, `billing`, `payment_notification`, `dashboard`, `profile`) mirror the domains documented in `README.md` and `INTEGRATION.md`, and correspond to the API's own domains in `SewaRent_Api` (`User`, `Property`, `Favourite`, `RentalRequest`, `Billing`, `Notification`).
 
 ---
 
@@ -454,15 +456,19 @@ Example:
 
 ```text
 features/
-└── property/
+├── property/
+│   ├── data/
+│   ├── domain/
+│   └── presentation/
+└── billing/
     ├── data/
     ├── domain/
     └── presentation/
 ```
 
-Property-specific code should stay inside `property`.
+Property-specific code should stay inside `property`; invoice/receipt/payment-claim code should stay inside `billing`, not spread across `property` or `rental_request` just because an invoice references a rental request.
 
-Do not move property-specific classes into `shared` just to make them accessible.
+Do not move feature-specific classes into `shared` just to make them accessible.
 
 ---
 
@@ -838,7 +844,21 @@ enum RentalStatus {
   cancelled,
   expired,
 }
+
+enum InvoiceStatus {
+  unpaid,
+  paymentClaimed,
+  paid,
+}
+
+enum PaymentNotificationType {
+  scheduled,
+  manual,
+  overdue,
+}
 ```
+
+These mirror the API's `Status`/`NotificationType` string fields documented in `DATABASE.md` §14 and §17 — keep the enum values and the API's string values in sync via the data-layer mapping, not by comparing raw strings throughout the UI.
 
 Avoid string comparisons everywhere when the value represents a fixed set of states.
 
@@ -1129,6 +1149,10 @@ AI agents working on SewaRent must follow these rules:
 18. Fix analyzer warnings introduced by the change.
 19. Update documentation when architecture or integration contracts change.
 20. Preserve existing naming conventions.
+21. Never send a raw `landlordId` from the client for landlord linking — always submit the human-entered `landlordCode` (see `INTEGRATION.md` §13).
+22. Always render an invoice's own snapshot fields (`bankName`/`bankAccountNumber`) rather than the landlord's live profile values (see `DATABASE.md` §14).
+23. Require a non-empty reason before allowing a landlord to submit a payment rejection — the API enforces this server-side, but the UI should not allow submitting an incomplete request.
+24. If this document appears to disagree with `SewaRent_Api`'s `CODING_STYLE.md` on a shared convention (naming, response envelope, status enums), treat the API repository as authoritative and flag the mismatch.
 
 ---
 
