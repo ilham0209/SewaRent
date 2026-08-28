@@ -14,16 +14,14 @@ class PropertyRepository {
     final data = await apiClient.get<Map<String, dynamic>>(
       '/properties',
       queryParameters: query?.toQueryParameters(),
-      authRequired: false,
       dataParser: (data) => data as Map<String, dynamic>,
     );
     return PropertyPage.fromJson(data!);
   }
 
-  Future<PropertyModel> getProperty(int id) async {
+  Future<PropertyModel> getProperty(String id) async {
     final data = await apiClient.get<Map<String, dynamic>>(
       '/properties/$id',
-      authRequired: false,
       dataParser: (data) => data as Map<String, dynamic>,
     );
     return PropertyModel.fromJson(data!);
@@ -39,7 +37,7 @@ class PropertyRepository {
   }
 
   Future<PropertyModel> updateProperty(
-    int id,
+    String id,
     UpdatePropertyRequest request,
   ) async {
     final data = await apiClient.put<Map<String, dynamic>>(
@@ -50,12 +48,12 @@ class PropertyRepository {
     return PropertyModel.fromJson(data!);
   }
 
-  Future<void> deleteProperty(int id) async {
+  Future<void> deleteProperty(String id) async {
     await apiClient.delete<void>('/properties/$id', dataParser: (_) {});
   }
 
   Future<PropertyImageModel> uploadImage(
-    int propertyId, {
+    String propertyId, {
     required List<int> bytes,
     required String filename,
   }) async {
@@ -69,7 +67,7 @@ class PropertyRepository {
     return PropertyImageModel.fromJson(data!);
   }
 
-  Future<void> deleteImage(int propertyId, int imageId) async {
+  Future<void> deleteImage(String propertyId, String imageId) async {
     await apiClient.delete<void>(
       '/properties/$propertyId/images/$imageId',
       dataParser: (_) {},

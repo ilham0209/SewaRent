@@ -11,6 +11,7 @@ class SewaRentApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: AppConstants.appName,
+      debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       initialRoute: AppRoutes.home,
       onGenerateRoute: AppRouter.onGenerateRoute,

@@ -27,10 +27,10 @@ class PropertyInformation extends StatelessWidget {
         icon: property.isFurnished ? Icons.chair_outlined : Icons.crop_square,
         label: property.isFurnished ? 'Furnished' : 'Unfurnished',
       ),
-      if (property.propertyType != null)
+      if (property.propertyTypeName != null)
         _InfoItem(
           icon: Icons.home_work_outlined,
-          label: property.propertyType!,
+          label: property.propertyTypeName!,
         ),
     ];
 

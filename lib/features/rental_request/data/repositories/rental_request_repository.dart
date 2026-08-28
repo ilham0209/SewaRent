@@ -19,14 +19,14 @@ class RentalRequestRepository {
   }
 
   Future<List<RentalRequestModel>> getTenantRequests() async {
-    final data = await apiClient.get<List<dynamic>>(
+    final data = await apiClient.get<Map<String, dynamic>>(
       '/rental-requests/my',
-      dataParser: (data) => data as List<dynamic>,
+      dataParser: (data) => data as Map<String, dynamic>,
     );
-    return _parseList(data);
+    return _parsePaginated(data);
   }
 
-  Future<RentalRequestModel> getRentalRequest(int id) async {
+  Future<RentalRequestModel> getRentalRequest(String id) async {
     final data = await apiClient.get<Map<String, dynamic>>(
       '/rental-requests/$id',
       dataParser: (data) => data as Map<String, dynamic>,
@@ -34,7 +34,7 @@ class RentalRequestRepository {
     return RentalRequestModel.fromJson(data!);
   }
 
-  Future<void> cancelRentalRequest(int id) async {
+  Future<void> cancelRentalRequest(String id) async {
     await apiClient.post<void>(
       '/rental-requests/$id/cancel',
       dataParser: (_) {},
@@ -42,32 +42,35 @@ class RentalRequestRepository {
   }
 
   Future<List<RentalRequestModel>> getLandlordRequests() async {
-    final data = await apiClient.get<List<dynamic>>(
+    final data = await apiClient.get<Map<String, dynamic>>(
       '/landlord/rental-requests',
-      dataParser: (data) => data as List<dynamic>,
+      dataParser: (data) => data as Map<String, dynamic>,
     );
-    return _parseList(data);
+    return _parsePaginated(data);
   }
 
-  Future<void> approveRentalRequest(int id) async {
+  Future<void> approveRentalRequest(String id) async {
     await apiClient.post<void>(
       '/rental-requests/$id/approve',
       dataParser: (_) {},
     );
   }
 
-  Future<void> rejectRentalRequest(int id) async {
+  Future<void> rejectRentalRequest(String id) async {
     await apiClient.post<void>(
       '/rental-requests/$id/reject',
       dataParser: (_) {},
     );
   }
 
-  List<RentalRequestModel> _parseList(List<dynamic>? data) {
+  List<RentalRequestModel> _parsePaginated(Map<String, dynamic>? data) {
     final requests = <RentalRequestModel>[];
-    for (final item in data ?? const <dynamic>[]) {
-      if (item is Map<String, dynamic>) {
-        requests.add(RentalRequestModel.fromJson(item));
+    final rawItems = data?['items'];
+    if (rawItems is List) {
+      for (final item in rawItems) {
+        if (item is Map<String, dynamic>) {
+          requests.add(RentalRequestModel.fromJson(item));
+        }
       }
     }
     return requests;

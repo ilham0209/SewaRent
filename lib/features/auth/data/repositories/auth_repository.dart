@@ -45,4 +45,13 @@ class AuthRepository {
     );
     return User.fromJson(data!);
   }
+
+  Future<String> linkLandlord(String landlordCode) async {
+    final data = await apiClient.post<Map<String, dynamic>>(
+      '/auth/link-landlord',
+      body: {'landlordCode': landlordCode},
+      dataParser: (data) => data as Map<String, dynamic>,
+    );
+    return data?['landlordId']?.toString() ?? '';
+  }
 }

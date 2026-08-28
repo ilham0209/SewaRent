@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.sewa_rent"
-    compileSdk = 37
+    compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
