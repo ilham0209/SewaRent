@@ -13,13 +13,18 @@ class Property {
     this.addressLine2,
     this.postcode,
     this.parkingSpaces,
-    this.propertyType,
+    this.latitude,
+    this.longitude,
+    this.propertyTypeId,
+    this.propertyTypeName,
     this.availabilityStatus,
-    this.imageUrls = const [],
+    this.isActive = true,
+    this.landlordId,
     this.landlordName,
+    this.imageUrls = const [],
   });
 
-  final int id;
+  final String id;
   final String title;
   final String? description;
   final double monthlyRent;
@@ -31,11 +36,16 @@ class Property {
   final int bedrooms;
   final int bathrooms;
   final int? parkingSpaces;
+  final double? latitude;
+  final double? longitude;
+  final String? propertyTypeId;
+  final String? propertyTypeName;
   final bool isFurnished;
   final String? availabilityStatus;
-  final String? propertyType;
-  final List<String> imageUrls;
+  final bool isActive;
+  final String? landlordId;
   final String? landlordName;
+  final List<String> imageUrls;
 
   String get locationLabel => '$city, $state';
 }

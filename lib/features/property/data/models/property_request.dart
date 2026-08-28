@@ -27,7 +27,7 @@ class CreatePropertyRequest {
   final int bathrooms;
   final int? parkingSpaces;
   final bool isFurnished;
-  final int? propertyTypeId;
+  final String? propertyTypeId;
 
   Map<String, dynamic> toJson() {
     return {
@@ -79,7 +79,7 @@ class UpdatePropertyRequest {
   final int? parkingSpaces;
   final bool isFurnished;
   final String? availabilityStatus;
-  final int? propertyTypeId;
+  final String? propertyTypeId;
 
   Map<String, dynamic> toJson() {
     return {

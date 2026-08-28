@@ -20,9 +20,11 @@ class ApiClient {
   final http.Client _httpClient;
 
   Uri _uri(String path, {Map<String, String>? queryParameters}) {
-    final base = Uri.parse(AppConstants.apiBaseUrl);
-    final normalizedPath = path.startsWith('/') ? path : '/$path';
-    final uri = base.resolve(normalizedPath);
+    final base = AppConstants.apiBaseUrl.endsWith('/')
+        ? AppConstants.apiBaseUrl.substring(0, AppConstants.apiBaseUrl.length - 1)
+        : AppConstants.apiBaseUrl;
+    final subPath = path.startsWith('/') ? path : '/$path';
+    final uri = Uri.parse('$base$subPath');
     if (queryParameters == null || queryParameters.isEmpty) {
       return uri;
     }
@@ -217,7 +219,10 @@ class ApiClient {
     String? message;
     final errors = <ApiFieldError>[];
     if (envelope != null) {
-      message = envelope['message']?.toString();
+      message = envelope['message']?.toString() ??
+          envelope['detailed']?.toString() ??
+          envelope['detail']?.toString() ??
+          envelope['title']?.toString();
       final rawErrors = envelope['errors'];
       if (rawErrors is List) {
         for (final error in rawErrors) {
@@ -230,7 +235,26 @@ class ApiClient {
             );
           }
         }
+      } else if (rawErrors is Map<String, dynamic>) {
+        for (final entry in rawErrors.entries) {
+          final val = entry.value;
+          if (val is List) {
+            for (final msg in val) {
+              errors.add(
+                ApiFieldError(field: entry.key, message: msg.toString()),
+              );
+            }
+          } else if (val != null) {
+            errors.add(
+              ApiFieldError(field: entry.key, message: val.toString()),
+            );
+          }
+        }
       }
+    }
+
+    if ((message == null || message.isEmpty) && errors.isNotEmpty) {
+      message = errors.map((e) => e.message).join('\n');
     }
 
     return ApiException(

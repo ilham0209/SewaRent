@@ -16,8 +16,13 @@ class PropertyModel {
     this.addressLine2,
     this.postcode,
     this.parkingSpaces,
-    this.propertyType,
+    this.latitude,
+    this.longitude,
+    this.propertyTypeId,
+    this.propertyTypeName,
     this.availabilityStatus,
+    this.isActive = true,
+    this.landlordId,
     this.landlordName,
     this.images = const [],
   });
@@ -33,8 +38,24 @@ class PropertyModel {
       }
     }
 
+    final singleImageUrl = json['imageUrl']?.toString();
+    if (singleImageUrl != null && images.isEmpty) {
+      images.add(PropertyImageModel(id: '', imageUrl: singleImageUrl));
+    }
+
+    final rawPropertyType = json['propertyType'];
+    String? propertyTypeId;
+    String? propertyTypeName;
+    if (rawPropertyType is Map<String, dynamic>) {
+      propertyTypeId = rawPropertyType['id']?.toString();
+      propertyTypeName = rawPropertyType['name']?.toString();
+    } else if (rawPropertyType is String) {
+      propertyTypeName = rawPropertyType;
+    }
+    propertyTypeName ??= json['propertyTypeName']?.toString();
+
     return PropertyModel(
-      id: (json['id'] as num).toInt(),
+      id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
       description: json['description']?.toString(),
       monthlyRent: (json['monthlyRent'] as num?)?.toDouble() ?? 0,
@@ -46,15 +67,20 @@ class PropertyModel {
       bedrooms: (json['bedrooms'] as num?)?.toInt() ?? 0,
       bathrooms: (json['bathrooms'] as num?)?.toInt() ?? 0,
       parkingSpaces: (json['parkingSpaces'] as num?)?.toInt(),
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      propertyTypeId: propertyTypeId,
+      propertyTypeName: propertyTypeName,
       isFurnished: json['isFurnished'] == true,
-      propertyType: json['propertyType']?.toString(),
       availabilityStatus: json['availabilityStatus']?.toString(),
+      isActive: json['isActive'] != false,
+      landlordId: json['landlordId']?.toString(),
       landlordName: json['landlordName']?.toString(),
       images: images,
     );
   }
 
-  final int id;
+  final String id;
   final String title;
   final String? description;
   final double monthlyRent;
@@ -66,9 +92,14 @@ class PropertyModel {
   final int bedrooms;
   final int bathrooms;
   final int? parkingSpaces;
+  final double? latitude;
+  final double? longitude;
+  final String? propertyTypeId;
+  final String? propertyTypeName;
   final bool isFurnished;
-  final String? propertyType;
   final String? availabilityStatus;
+  final bool isActive;
+  final String? landlordId;
   final String? landlordName;
   final List<PropertyImageModel> images;
 
@@ -86,9 +117,14 @@ class PropertyModel {
       bedrooms: bedrooms,
       bathrooms: bathrooms,
       parkingSpaces: parkingSpaces,
+      latitude: latitude,
+      longitude: longitude,
+      propertyTypeId: propertyTypeId,
+      propertyTypeName: propertyTypeName,
       isFurnished: isFurnished,
-      propertyType: propertyType,
       availabilityStatus: availabilityStatus,
+      isActive: isActive,
+      landlordId: landlordId,
       landlordName: landlordName,
       imageUrls: images.map((image) => image.imageUrl).toList(),
     );

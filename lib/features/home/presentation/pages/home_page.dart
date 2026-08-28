@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/router.dart';
-import '../../../property/domain/entities/property.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/widgets/empty_state.dart';
+import '../../../property/data/models/property_model.dart';
+import '../../../property/data/models/property_query.dart';
 import '../../../property/presentation/widgets/property_card.dart';
-import '../../data/mock_properties.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,7 +15,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  var _isLoading = true;
+  String? _errorMessage;
+  var _properties = <PropertyModel>[];
   var _selectedCategory = 'All';
+  // TODO: Set based on fetched user profile (landlordId != null).
+  final _isLinkedToLandlord = true;
 
   static const _categories = <String>[
     'All',
@@ -24,18 +31,67 @@ class _HomePageState extends State<HomePage> {
     'Studio',
   ];
 
-  List<Property> get _recommendedProperties {
-    if (_selectedCategory == 'All') {
-      return mockProperties;
+  @override
+  void initState() {
+    super.initState();
+    _loadProperties();
+  }
+
+  Future<void> _loadProperties() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final page = await AppServices.propertyRepository.getProperties(
+        query: PropertyQuery(page: 1, pageSize: 50),
+      );
+      if (!mounted) return;
+      setState(() {
+        _properties = page.items;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = _friendlyError(e);
+      });
     }
-    return mockProperties
-        .where((property) => property.propertyType == _selectedCategory)
+  }
+
+  String _friendlyError(Object e) {
+    final message = e.toString();
+    if (message.contains('401')) {
+      return 'Your session has expired. Please log in again.';
+    }
+    if (message.contains('403')) {
+      return 'You do not have permission to view properties.';
+    }
+    if (message.contains('404')) {
+      return 'Properties could not be found.';
+    }
+    if (message.contains('500')) {
+      return 'Something went wrong on our end. Please try again later.';
+    }
+    if (message.contains('Unable to reach') || message.contains('timed out')) {
+      return 'Unable to reach the server. Please check your connection.';
+    }
+    return 'Failed to load properties. Please try again.';
+  }
+
+  List<PropertyModel> get _filteredProperties {
+    if (_selectedCategory == 'All') {
+      return _properties;
+    }
+    return _properties
+        .where((p) => p.propertyTypeName == _selectedCategory)
         .toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final properties = _recommendedProperties;
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -62,30 +118,7 @@ class _HomePageState extends State<HomePage> {
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
-            if (properties.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Center(
-                  child: Text('No properties found for this category.'),
-                ),
-              )
-            else
-              SizedBox(
-                height: 260,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: properties.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    final property = properties[index];
-                    return PropertyCard(
-                      property: property,
-                      onTap: () => _openProperty(property),
-                    );
-                  },
-                ),
-              ),
+            _buildPropertyList(),
             const SizedBox(height: 24),
           ],
         ),
@@ -93,10 +126,72 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _openProperty(Property property) {
+  Widget _buildPropertyList() {
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 48),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: EmptyState(
+          icon: Icons.cloud_off_outlined,
+          message: _errorMessage!,
+          detail: 'Pull down to retry.',
+        ),
+      );
+    }
+
+    if (!_isLinkedToLandlord) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: EmptyState(
+          icon: Icons.link_off_outlined,
+          message: 'Link to your landlord',
+          detail:
+              'Enter your landlord\'s code to view available properties. '
+              'You can do this from your profile.',
+        ),
+      );
+    }
+
+    final properties = _filteredProperties;
+
+    if (properties.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: EmptyState(
+          icon: Icons.home_work_outlined,
+          message: 'No properties found',
+          detail: 'There are no properties available for this category.',
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 260,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: properties.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final property = properties[index];
+          return PropertyCard(
+            property: property.toEntity(),
+            onTap: () => _openProperty(property),
+          );
+        },
+      ),
+    );
+  }
+
+  void _openProperty(PropertyModel property) {
     Navigator.of(
       context,
-    ).pushNamed(AppRoutes.propertyDetail, arguments: property);
+    ).pushNamed(AppRoutes.propertyDetail, arguments: property.toEntity());
   }
 }
 
@@ -143,7 +238,6 @@ class _HomeSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Navigate to the search screen when search is implemented in Phase 2.
     return const TextField(
       readOnly: true,
       decoration: InputDecoration(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../features/auth/presentation/pages/auth_wrapper.dart';
 import '../features/favourite/presentation/pages/favourites_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
@@ -24,7 +25,7 @@ abstract final class AppRouter {
       case AppRoutes.home:
       default:
         return MaterialPageRoute<void>(
-          builder: (_) => const MainShell(),
+          builder: (_) => const AuthWrapper(),
           settings: settings,
         );
     }
@@ -32,14 +33,16 @@ abstract final class AppRouter {
 }
 
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  const MainShell({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  var _selectedIndex = 0;
+  late var _selectedIndex = widget.initialIndex;
 
   static const _pages = <Widget>[
     HomePage(),

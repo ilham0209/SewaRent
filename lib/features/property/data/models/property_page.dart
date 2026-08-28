@@ -23,7 +23,9 @@ class PropertyPage {
 
     return PropertyPage(
       items: items,
-      page: (json['page'] as num?)?.toInt() ?? 1,
+      page: (json['currentPage'] as num?)?.toInt() ??
+          (json['page'] as num?)?.toInt() ??
+          1,
       pageSize:
           (json['pageSize'] as num?)?.toInt() ?? AppConstants.defaultPageSize,
       totalCount: (json['totalCount'] as num?)?.toInt() ?? 0,
